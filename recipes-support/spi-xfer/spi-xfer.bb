@@ -9,7 +9,7 @@ S = "${WORKDIR}/git"
 SRC_FILE = "${WORKDIR}/git/spidev-app/spi_xfer.c"
 
 do_compile() {
-    ${CC} spidev-app/spi_xfer.c -o spi_xfer
+    ${CC} spidev-app/spi_xfer.c ${LDFLAGS} -o spi_xfer
 }
 
 do_install() {
