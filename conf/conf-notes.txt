@@ -1,7 +1,7 @@
 Supported targets:
-    intel-aero-image
+    core-image-base
 
 Now type
-    bitbake intel-aero-image
+    bitbake core-image-base
 
 To build the final image
