@@ -7,10 +7,12 @@ LINUX_VERSION_intel-aero = "4.4.60"
 KERNEL_EXTRA_FEATURES = ""
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI = "git://git.yoctoproject.org/linux-yocto-4.4.git;name=machine;branch=${KBRANCH};"
-
 # List of configs to enable in kernel .config
 SRC_URI += "file://defconfig"
+
+# Don't run config check as we're using defconfig
+do_kernel_configcheck() {
+}
 
 # List of binary files
 SRC_URI += "file://shisp_2401a0_v21.bin \
