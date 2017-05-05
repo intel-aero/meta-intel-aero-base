@@ -3,6 +3,17 @@ Yocto layer to support Intel Aero platform
 
 See [wiki](https://github.com/intel-aero/meta-intel-aero/wiki) for instructions.
 
+Dependencies
+============
+
+This layer depends on:
+
+  URI: git://git.yoctoproject.org/poky.git
+  branch: krogoth
+
+  URI: git://git.yoctoproject.org/meta-intel
+  branch: krogoth
+
 License
 =======
 http://www.gnu.org/licenses/gpl-2.0.html
