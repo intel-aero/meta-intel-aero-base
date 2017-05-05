@@ -19,7 +19,6 @@ SRC_URI += "file://shisp_2401a0_v21.bin \
 			"
 # List of patches to apply
 SRC_URI += " \
-	file://0002-media-Add-support-for-RW10-pixel-format-detection.patch \
 	file://0003-thermal-add-cherryview-support-to-soc-dts.patch \
 	file://0004-dma-dw-Allow-driver-usage-on-platforms-without-HCLK.patch \
 	file://0005-dma-dw-must-initialize-dma-channel-in-each-transacti.patch \
@@ -47,10 +46,6 @@ SRC_URI += " \
 	file://0027-acpi-Workaround-for-not-registering-CAN-controller.patch \
 	file://0028-Temporarily-remove-BXT-PMIC-driver.patch \
 	"
-
-# SRC_URI += " \
-# 	file://0001-Add-support-to-RealSense-camera-formats.patch \
-# 	"
 
 do_install_append() {
 	install -d ${D}/lib/firmware
