@@ -1,7 +1,6 @@
-# meta-intel-aero
-Yocto layer to support Intel Aero platform
-
-See [wiki](https://github.com/intel-aero/meta-intel-aero/wiki) for instructions.
+# meta-intel-aero-base
+BSP support layer for Intel Aero platform. This contains the minimal configurations
+for HW testing and as a base for alternative "distro configurations".
 
 Dependencies
 ============
