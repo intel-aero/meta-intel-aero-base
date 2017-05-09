@@ -71,6 +71,8 @@ live_dev_name=${live_dev_name#\/dev/}
 case $live_dev_name in
     mmcblk*)
     ;;
+    nvme*)
+    ;;
     *)
         live_dev_name=${live_dev_name%%[0-9]*}
     ;;
@@ -78,7 +80,13 @@ esac
 
 echo "Searching for hard drives ..."
 
-for device in `ls /sys/block/`; do
+# Some eMMC devices have special sub devices such as mmcblk0boot0 etc
+# we're currently only interested in the root device so pick them wisely
+devices=`ls /sys/block/ | grep -v mmcblk` || true
+mmc_devices=`ls /sys/block/ | grep "mmcblk[0-9]\{1,\}$"` || true
+devices="$devices $mmc_devices"
+
+for device in $devices; do
     case $device in
         loop*)
             # skip loop device
@@ -158,8 +166,8 @@ umount ${device}* 2> /dev/null || /bin/true
 mkdir -p /tmp
 
 # Create /etc/mtab if not present
-if [ ! -e /etc/mtab ]; then
-    cat /proc/mounts > /etc/mtab
+if [ ! -e /etc/mtab ] && [ -e /proc/mounts ]; then
+    ln -sf /proc/mounts /etc/mtab
 fi
 
 disk_size=$(parted ${device} unit mb print | grep '^Disk .*: .*MB' | cut -d" " -f 3 | sed -e "s/MB//")
@@ -176,10 +184,17 @@ swap_start=$((rootfs_end))
 # 2) they are detected asynchronously (need rootwait)
 rootwait=""
 part_prefix=""
-if [ ! "${device#/dev/mmcblk}" = "${device}" ]; then
+if [ ! "${device#/dev/mmcblk}" = "${device}" ] || \
+   [ ! "${device#/dev/nvme}" = "${device}" ]; then
     part_prefix="p"
     rootwait="rootwait"
 fi
+
+# USB devices also require rootwait
+if [ -n `readlink /dev/disk/by-id/usb* | grep $TARGET_DEVICE_NAME` ]; then
+    rootwait="rootwait"
+fi
+
 bootfs=${device}${part_prefix}1
 rootfs=${device}${part_prefix}2
 swap=${device}${part_prefix}3
@@ -266,19 +281,19 @@ fi
 
 if [ -d /run/media/$1/loader ]; then
     rootuuid=$(blkid -o value -s PARTUUID ${rootfs})
-    GUMMIBOOT_CFGS="/boot/loader/entries/*.conf"
-    # copy config files for gummiboot
+    SYSTEMDBOOT_CFGS="/boot/loader/entries/*.conf"
+    # copy config files for systemd-boot
     cp -dr /run/media/$1/loader /boot
     # delete the install entry
     rm -f /boot/loader/entries/install.conf
     # delete the initrd lines
-    sed -i "/initrd /d" $GUMMIBOOT_CFGS
+    sed -i "/initrd /d" $SYSTEMDBOOT_CFGS
     # delete any LABEL= strings
-    sed -i "s/ LABEL=[^ ]*/ /" $GUMMIBOOT_CFGS
+    sed -i "s/ LABEL=[^ ]*/ /" $SYSTEMDBOOT_CFGS
     # delete any root= strings
-    sed -i "s/ root=[^ ]*/ /" $GUMMIBOOT_CFGS
+    sed -i "s/ root=[^ ]*/ /" $SYSTEMDBOOT_CFGS
     # add the root= and other standard boot options
-    sed -i "s@options *@options root=PARTUUID=$rootuuid rw $rootwait quiet @" $GUMMIBOOT_CFGS
+    sed -i "s@options *@options root=PARTUUID=$rootuuid rw $rootwait quiet @" $SYSTEMDBOOT_CFGS
 fi
 
 umount /tgt_root
