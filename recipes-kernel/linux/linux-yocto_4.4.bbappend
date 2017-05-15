@@ -7,6 +7,9 @@ LINUX_VERSION_intel-aero = "4.4.60"
 KERNEL_EXTRA_FEATURES = ""
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
+# module is not enabled, but brought in by meta-virtualization
+KERNEL_MODULE_AUTOLOAD_remove = "kvm-amd"
+
 # List of configs to enable in kernel .config
 SRC_URI += "file://defconfig"
 
