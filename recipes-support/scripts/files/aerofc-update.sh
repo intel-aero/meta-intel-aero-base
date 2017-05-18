@@ -44,7 +44,7 @@ if [ -n "$(fuser /dev/ttyS1)" ]; then
     router_running=1
 
     # try stopping router
-    /etc/init.d/mavlink-routerd.sh stop
+    systemctl stop mavlink-router
     p=$(fuser /dev/ttyS1 | tr -d '[:space:]')
     if [ -n "$p" ]; then
         s=$(cat /proc/$p/cmdline | tr -d '[:space:]')
@@ -61,5 +61,5 @@ echo -e "Updating firmware on AeroFC"
 
 # run router again if it was previously running
 if [ $router_running ]; then
-    /etc/init.d/mavlink-routerd.sh start
+    systemctl start mavlink-router
 fi
