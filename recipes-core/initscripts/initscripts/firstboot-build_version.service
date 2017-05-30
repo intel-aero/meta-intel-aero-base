@@ -1,0 +1,10 @@
+
+Description=intel-aero
+
+[Service]
+Type=oneshot
+ExecStart=/etc/init.d/build_version.sh
+
+[Install]
+WantedBy=multi-user.target
+
