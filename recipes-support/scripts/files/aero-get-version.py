@@ -11,6 +11,7 @@
 
 import commands
 import os.path
+import subprocess
 
 def main():
     print "\n"
@@ -66,12 +67,8 @@ def OS_version(rootdir='/'):
 
 def BIOS_version():
     try:
-        f = open("/etc/bios_version", "r")
-        words = f.readline().split()
-
-        for word in words:
-            if "Aero-" in word:
-                print "BIOS_VERSION = " + word
+	line = subprocess.check_output("dmidecode | grep Aero-", shell=True)
+        print "BIOS_VERSION = " + (line.split(':')[1]).strip()
     except:
         print "BIOS_VERSION = unknown"
 
