@@ -1,0 +1,36 @@
+From 0767f16677a6245127e463eb2716b5f3c43893c5 Mon Sep 17 00:00:00 2001
+From: Lucas De Marchi <lucas.demarchi@intel.com>
+Date: Thu, 9 Mar 2017 14:09:25 -0800
+Subject: [PATCH 07/16] pmic: Update WC pmic to new API
+
+Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
+---
+ drivers/power/intel_pmic_ccsm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/power/intel_pmic_ccsm.c b/drivers/power/intel_pmic_ccsm.c
+index 336a474..30e7073 100644
+--- a/drivers/power/intel_pmic_ccsm.c
++++ b/drivers/power/intel_pmic_ccsm.c
+@@ -762,7 +762,8 @@ static int pmic_check_initial_events(void)
+ 	if (!edev)
+ 		dev_err(chc.dev, "No edev found");
+ 	else {
+-		chc.cable_state = extcon_get_cable_state(edev, "USB-Host");
++		chc.cable_state = extcon_get_cable_state_(edev,
++							  EXTCON_USB_HOST);
+ 		if (chc.cable_state)
+ 			schedule_work(&chc.extcon_work);
+ 	}
+@@ -800,7 +801,7 @@ static int pmic_ccsm_usb_host_nb(struct notifier_block *nb,
+ {
+ 	struct extcon_dev *dev = (struct extcon_dev *)data;
+ 
+-	chc.cable_state = extcon_get_cable_state(dev, "USB-Host");
++	chc.cable_state = extcon_get_cable_state_(dev, EXTCON_USB_HOST);
+ 	schedule_work(&chc.extcon_work);
+ 	return NOTIFY_OK;
+ }
+-- 
+2.9.4
+

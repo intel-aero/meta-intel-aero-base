@@ -1,0 +1,81 @@
+From 24d8caa164c4e4b9911d92a8b95bba1257c25bbb Mon Sep 17 00:00:00 2001
+From: Lucas De Marchi <lucas.demarchi@intel.com>
+Date: Fri, 2 Jun 2017 11:41:45 -0700
+Subject: [PATCH 05/16] REMOVEME: Revert "mfd: intel_soc_pmic_bxtwc: Add
+ bxt_wcove_usbc device"
+
+This reverts commit 9c6235c8633210cc2da0882e2e9d6ff90aa37503.
+
+It conflicts with the pmic implementation for CHT. Remove this once
+proper PMIC implementation reaches upstream.
+
+Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
+---
+ drivers/mfd/intel_soc_pmic_bxtwc.c | 23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
+
+diff --git a/drivers/mfd/intel_soc_pmic_bxtwc.c b/drivers/mfd/intel_soc_pmic_bxtwc.c
+index 43e54b7..b942876 100644
+--- a/drivers/mfd/intel_soc_pmic_bxtwc.c
++++ b/drivers/mfd/intel_soc_pmic_bxtwc.c
+@@ -47,8 +47,6 @@
+ #define BXTWC_MIRQLVL1		0x4E0E
+ #define BXTWC_MPWRTNIRQ		0x4E0F
+ 
+-#define BXTWC_MIRQLVL1_MCHGR	BIT(5)
+-
+ #define BXTWC_MTHRM0IRQ		0x4E12
+ #define BXTWC_MTHRM1IRQ		0x4E13
+ #define BXTWC_MTHRM2IRQ		0x4E14
+@@ -111,7 +109,7 @@ static const struct regmap_irq bxtwc_regmap_irqs_level2[] = {
+ 	REGMAP_IRQ_REG(BXTWC_THRM2_IRQ, 2, 0xff),
+ 	REGMAP_IRQ_REG(BXTWC_BCU_IRQ, 3, 0x1f),
+ 	REGMAP_IRQ_REG(BXTWC_ADC_IRQ, 4, 0xff),
+-	REGMAP_IRQ_REG(BXTWC_CHGR0_IRQ, 5, 0x3f),
++	REGMAP_IRQ_REG(BXTWC_CHGR0_IRQ, 5, 0x1f),
+ 	REGMAP_IRQ_REG(BXTWC_CHGR1_IRQ, 6, 0x1f),
+ 	REGMAP_IRQ_REG(BXTWC_GPIO0_IRQ, 7, 0xff),
+ 	REGMAP_IRQ_REG(BXTWC_GPIO1_IRQ, 8, 0x3f),
+@@ -145,10 +143,6 @@ static struct resource adc_resources[] = {
+ 	DEFINE_RES_IRQ_NAMED(BXTWC_ADC_IRQ, "ADC"),
+ };
+ 
+-static struct resource usbc_resources[] = {
+-	DEFINE_RES_IRQ_NAMED(BXTWC_CHGR0_IRQ, "USBC"),
+-};
+-
+ static struct resource charger_resources[] = {
+ 	DEFINE_RES_IRQ_NAMED(BXTWC_CHGR0_IRQ, "CHARGER"),
+ 	DEFINE_RES_IRQ_NAMED(BXTWC_CHGR1_IRQ, "CHARGER1"),
+@@ -176,11 +170,6 @@ static struct mfd_cell bxt_wc_dev[] = {
+ 		.resources = thermal_resources,
+ 	},
+ 	{
+-		.name = "bxt_wcove_usbc",
+-		.num_resources = ARRAY_SIZE(usbc_resources),
+-		.resources = usbc_resources,
+-	},
+-	{
+ 		.name = "bxt_wcove_ext_charger",
+ 		.num_resources = ARRAY_SIZE(charger_resources),
+ 		.resources = charger_resources,
+@@ -414,16 +403,6 @@ static int bxtwc_probe(struct platform_device *pdev)
+ 		goto err_sysfs;
+ 	}
+ 
+-	/*
+-	 * There is known hw bug. Upon reset BIT 5 of register
+-	 * BXTWC_CHGR_LVL1_IRQ is 0 which is the expected value. However,
+-	 * later it's set to 1(masked) automatically by hardware. So we
+-	 * have the software workaround here to unmaksed it in order to let
+-	 * charger interrutp work.
+-	 */
+-	regmap_update_bits(pmic->regmap, BXTWC_MIRQLVL1,
+-				BXTWC_MIRQLVL1_MCHGR, 0);
+-
+ 	return 0;
+ 
+ err_sysfs:
+-- 
+2.9.4
+

@@ -1,0 +1,51 @@
+From d1890cd12a83e7c07c285de86c2c2b03d6519fad Mon Sep 17 00:00:00 2001
+From: Omar Ramirez Luna <omar.r.ramirez.luna@intel.com>
+Date: Wed, 12 Oct 2016 14:17:22 -0700
+Subject: [PATCH 11/16] intel-mid: split keyboard gpio SFI implementation from
+ the driver
+
+soc_button_array driver is unusable because of dependencies on
+the platform SFI implementation for intel-mid platforms. These
+dependencies on SFI make compilation break for ACPI based
+platforms.
+
+Signed-off-by: Omar Ramirez Luna <omar.r.ramirez.luna@intel.com>
+---
+ arch/x86/platform/intel-mid/device_libs/Makefile | 2 +-
+ drivers/platform/x86/Kconfig                     | 9 +++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/platform/intel-mid/device_libs/Makefile b/arch/x86/platform/intel-mid/device_libs/Makefile
+index dd6cfa4..ad2eec1 100644
+--- a/arch/x86/platform/intel-mid/device_libs/Makefile
++++ b/arch/x86/platform/intel-mid/device_libs/Makefile
+@@ -27,5 +27,5 @@ obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_max7315.o
+ obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_pcal9555a.o
+ obj-$(subst m,y,$(CONFIG_GPIO_PCA953X)) += platform_tca6416.o
+ # MISC Devices
+-obj-$(subst m,y,$(CONFIG_KEYBOARD_GPIO)) += platform_gpio_keys.o
++obj-$(subst m,y,$(CONFIG_INTEL_MID_KEYBOARD_GPIO)) += platform_gpio_keys.o
+ obj-$(subst m,y,$(CONFIG_INTEL_MID_WATCHDOG)) += platform_mrfld_wdt.o
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index b8a21d7..52629af 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -819,6 +819,15 @@ config INTEL_MID_POWER_BUTTON
+ 
+ 	  If unsure, say N.
+ 
++config INTEL_MID_KEYBOARD_GPIO
++	tristate "keyboard button driver for Intel MID platforms"
++	depends on INTEL_SCU_IPC && INPUT && KEYBOARD_GPIO
++	help
++	  This driver handles the SOC Array buttons on the Intel MID platforms
++	  using SFI.
++
++	  If unsure, say N.
++
+ config INTEL_MFLD_THERMAL
+        tristate "Thermal driver for Intel Medfield platform"
+        depends on MFD_INTEL_MSIC && THERMAL
+-- 
+2.9.4
+

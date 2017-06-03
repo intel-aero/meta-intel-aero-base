@@ -1,0 +1,50 @@
+From 8b0f2286a7ef0f97519e7cc18fc2804dfef5f102 Mon Sep 17 00:00:00 2001
+From: Lucas De Marchi <lucas.demarchi@intel.com>
+Date: Wed, 8 Mar 2017 19:09:37 -0800
+Subject: [PATCH 03/16] FIXUP: usb: otg: add cherryview support
+
+Update to use new API.
+
+Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
+---
+ drivers/usb/host/xhci-intel-cap.c | 2 +-
+ drivers/usb/phy/phy-intel-cht.c   | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-intel-cap.c b/drivers/usb/host/xhci-intel-cap.c
+index 412d81c..6974324 100644
+--- a/drivers/usb/host/xhci-intel-cap.c
++++ b/drivers/usb/host/xhci-intel-cap.c
+@@ -30,7 +30,7 @@ int xhci_intel_vendor_cap_init(struct xhci_hcd *xhci)
+ 	int ext_offset, retval;
+ 
+ 	ext_offset = XHCI_HCC_EXT_CAPS(readl(&xhci->cap_regs->hcc_params));
+-	ext_offset = xhci_find_ext_cap_by_id(&xhci->cap_regs->hc_capbase,
++	ext_offset = xhci_find_next_ext_cap(&xhci->cap_regs->hc_capbase,
+ 			ext_offset << 2, XHCI_EXT_CAPS_INTEL_HOST_CAP);
+ 	if (!ext_offset)
+ 		return -ENODEV;
+diff --git a/drivers/usb/phy/phy-intel-cht.c b/drivers/usb/phy/phy-intel-cht.c
+index 46ef5f2..63ea129 100644
+--- a/drivers/usb/phy/phy-intel-cht.c
++++ b/drivers/usb/phy/phy-intel-cht.c
+@@ -30,6 +30,7 @@
+ #include <linux/extcon.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
++#include <linux/uaccess.h>
+ 
+ #include "../host/xhci.h"
+ #include "../host/xhci-intel-cap.h"
+@@ -55,7 +56,7 @@ static int edev_state_to_id(struct extcon_dev *evdev)
+ {
+ 	int state;
+ 
+-	state = extcon_get_cable_state(evdev, "USB-Host");
++	state = extcon_get_cable_state_(evdev, EXTCON_USB_HOST);
+ 
+ 	return !evdev->state;
+ }
+-- 
+2.9.4
+

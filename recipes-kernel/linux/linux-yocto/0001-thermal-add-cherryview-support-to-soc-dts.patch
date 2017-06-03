@@ -1,0 +1,27 @@
+From 07705d92517194a12812f3d10837dfb015be1eea Mon Sep 17 00:00:00 2001
+From: Israel Cepeda <israel.a.cepeda.lopez@intel.com>
+Date: Sat, 11 Jun 2016 00:25:19 -0700
+Subject: [PATCH 01/16] thermal: add cherryview support to soc dts
+
+Adding Cherryview support to intel soc dts thermal driver
+
+Signed-off-by: Israel Cepeda <israel.a.cepeda.lopez@intel.com>
+---
+ drivers/thermal/intel_soc_dts_thermal.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/thermal/intel_soc_dts_thermal.c b/drivers/thermal/intel_soc_dts_thermal.c
+index b2bbaa1..291ccb5 100644
+--- a/drivers/thermal/intel_soc_dts_thermal.c
++++ b/drivers/thermal/intel_soc_dts_thermal.c
+@@ -45,6 +45,7 @@ static irqreturn_t soc_irq_thread_fn(int irq, void *dev_data)
+ static const struct x86_cpu_id soc_thermal_ids[] = {
+ 	{ X86_VENDOR_INTEL, 6, INTEL_FAM6_ATOM_SILVERMONT1, 0,
+ 		BYT_SOC_DTS_APIC_IRQ},
++	{ X86_VENDOR_INTEL, 6, INTEL_FAM6_ATOM_AIRMONT, 0, 0 },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(x86cpu, soc_thermal_ids);
+-- 
+2.9.4
+
