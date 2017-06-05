@@ -1,0 +1,11 @@
+[Unit]
+Description=Start LEDs when initialising
+DefaultDependencies=false
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/init_start.sh
+Restart=no
+
+[Install]
+WantedBy=sysinit.target

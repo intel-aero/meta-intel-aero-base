@@ -1,0 +1,9 @@
+[Unit]
+Description=Green LED ON when initialisation completed
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/init_complete.sh
+
+[Install]
+RequiredBy=multi-user.target
