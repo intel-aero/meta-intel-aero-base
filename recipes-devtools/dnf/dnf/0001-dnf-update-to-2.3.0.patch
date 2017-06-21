@@ -1,0 +1,166 @@
+From 8c37bb4baa86dfffe46130cb3298c8e30c53f945 Mon Sep 17 00:00:00 2001
+From: Alexander Kanavin <alexander.kanavin@linux.intel.com>
+Date: Fri, 21 Apr 2017 15:39:57 +0300
+Subject: [PATCH 3/4] dnf: update to 2.3.0
+
+Drop dependency on pygpgme, replace it with gpgme's own bindings.
+
+Add a patch that fixes an upstream regression.
+
+(From OE-Core rev: ee5dcf78f3abfec40e278591ccbd1e475ca6df15)
+
+Signed-off-by: Alexander Kanavin <alexander.kanavin@linux.intel.com>
+Signed-off-by: Ross Burton <ross.burton@intel.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+---
+ ...er-check-of-releasever-when-using-install.patch | 105 +++++++++++++++++++++
+ meta/recipes-devtools/dnf/dnf_git.bb               |   9 +-
+ 2 files changed, 110 insertions(+), 4 deletions(-)
+ create mode 100644 meta/recipes-devtools/dnf/dnf/0001-Revert-proper-check-of-releasever-when-using-install.patch
+
+diff --git a/meta/recipes-devtools/dnf/dnf/0001-Revert-proper-check-of-releasever-when-using-install.patch b/meta/recipes-devtools/dnf/dnf/0001-Revert-proper-check-of-releasever-when-using-install.patch
+new file mode 100644
+index 0000000000..879ecfa30d
+--- /dev/null
++++ b/meta/recipes-devtools/dnf/dnf/0001-Revert-proper-check-of-releasever-when-using-install.patch
+@@ -0,0 +1,105 @@
++From 8cd0503612573c455f34db74cd1c2216ed25b69c Mon Sep 17 00:00:00 2001
++From: Alexander Kanavin <alex.kanavin@gmail.com>
++Date: Wed, 12 Apr 2017 15:42:06 +0300
++Subject: [PATCH] Revert "proper check of releasever, when using installroot
++ (RhBug:1417542)"
++
++This reverts commit 3ddf684b7c67a2b384aa99dde53d8a43218f2e68, as it's causing
++breakage when installing packages into a pristin rootfs. Upstream has been notified:
++https://bugzilla.redhat.com/show_bug.cgi?id=1441636
++
++Upstream-Status: Inappropriate [pending proper fix]
++Signed-off-by: Alex Kanavin <alex.kanavin@gmail.com>
++---
++ dnf/rpm/__init__.py | 59 +++++++++++++++++++++++++----------------------------
++ doc/command_ref.rst |  3 +--
++ 2 files changed, 29 insertions(+), 33 deletions(-)
++
++diff --git a/dnf/rpm/__init__.py b/dnf/rpm/__init__.py
++index 5976acd6..1d50e6a0 100644
++--- a/dnf/rpm/__init__.py
+++++ b/dnf/rpm/__init__.py
++@@ -30,38 +30,35 @@ def detect_releasever(installroot):
++     # :api
++     """Calculate the release version for the system."""
++ 
++-    # if installroot is empty dir releasever is None,
++-    # that's why releasever is checked from '/'
++-    for root in [installroot, "/"]:
++-        ts = transaction.initReadOnlyTransaction(root=root)
++-        ts.pushVSFlags(~(rpm._RPMVSF_NOSIGNATURES | rpm._RPMVSF_NODIGESTS))
++-        for distroverpkg in dnf.const.DISTROVERPKG:
++-            try:
++-                idx = ts.dbMatch('provides', distroverpkg)
++-            except (TypeError, rpm.error) as e:
++-                raise dnf.exceptions.Error('Error: %s' % str(e))
++-            if not len(idx):
++-                continue
++-            try:
++-                hdr = next(idx)
++-            except StopIteration:
++-                msg = 'Error: rpmdb failed to list provides. Try: rpm --rebuilddb'
++-                raise dnf.exceptions.Error(msg)
++-            releasever = hdr['version']
++-            try:
++-                off = hdr[rpm.RPMTAG_PROVIDENAME].index(distroverpkg)
++-                flag = hdr[rpm.RPMTAG_PROVIDEFLAGS][off]
++-                ver = hdr[rpm.RPMTAG_PROVIDEVERSION][off]
++-                if flag == rpm.RPMSENSE_EQUAL and ver:
++-                    if hdr['name'] != distroverpkg:
++-                        # override the package version
++-                        releasever = ver
++-            except (ValueError, KeyError, IndexError):
++-                pass
+++    ts = transaction.initReadOnlyTransaction(root=installroot)
+++    ts.pushVSFlags(~(rpm._RPMVSF_NOSIGNATURES | rpm._RPMVSF_NODIGESTS))
+++    for distroverpkg in dnf.const.DISTROVERPKG:
+++        try:
+++            idx = ts.dbMatch('provides', distroverpkg)
+++        except (TypeError, rpm.error) as e:
+++            raise dnf.exceptions.Error('Error: %s' % str(e))
+++        if not len(idx):
+++            continue
+++        try:
+++            hdr = next(idx)
+++        except StopIteration:
+++            msg = 'Error: rpmdb failed to list provides. Try: rpm --rebuilddb'
+++            raise dnf.exceptions.Error(msg)
+++        releasever = hdr['version']
+++        try:
+++            off = hdr[rpm.RPMTAG_PROVIDENAME].index(distroverpkg)
+++            flag = hdr[rpm.RPMTAG_PROVIDEFLAGS][off]
+++            ver = hdr[rpm.RPMTAG_PROVIDEVERSION][off]
+++            if flag == rpm.RPMSENSE_EQUAL and ver:
+++                if hdr['name'] != distroverpkg:
+++                    # override the package version
+++                    releasever = ver
+++        except (ValueError, KeyError, IndexError):
+++            pass
++ 
++-            if is_py3bytes(releasever):
++-                releasever = str(releasever, "utf-8")
++-            return releasever
+++        if is_py3bytes(releasever):
+++            releasever = str(releasever, "utf-8")
+++        return releasever
++     return None
++ 
++ 
++diff --git a/doc/command_ref.rst b/doc/command_ref.rst
++index 77e885ab..3dd451b5 100644
++--- a/doc/command_ref.rst
+++++ b/doc/command_ref.rst
++@@ -205,8 +205,7 @@ Options
++  Note: You may also want to use the command-line option
++  ``--releasever=<release>`` when creating the installroot otherwise the
++  *$releasever* value is taken from the rpmdb within the installroot (and thus
++- it is empty at time of creation and *$releasever* is taken from rpmdb using
++- installroot=/).
+++ it is empty at time of creation, the transaction will fail).
++  The new installroot path at time of creation do not contain *repository*,
++  *releasever*, and *dnf.conf* file.
++ 
++-- 
++2.11.0
++
+diff --git a/meta/recipes-devtools/dnf/dnf_git.bb b/meta/recipes-devtools/dnf/dnf_git.bb
+index 9f814fb211..62c7127ac8 100644
+--- a/meta/recipes-devtools/dnf/dnf_git.bb
++++ b/meta/recipes-devtools/dnf/dnf_git.bb
+@@ -10,22 +10,23 @@ SRC_URI = "git://github.com/rpm-software-management/dnf.git \
+            file://0001-Do-not-prepend-installroot-to-logdir.patch \
+            file://0001-Do-not-hardcode-etc-and-systemd-unit-directories.patch \
+            file://0001-Corretly-install-tmpfiles.d-configuration.patch \
++           file://0001-Revert-proper-check-of-releasever-when-using-install.patch \
+            "
+ 
+-PV = "2.0.0+git${SRCPV}"
+-SRCREV = "f0093d672d3069cfee8447973ae70ef615fd8886"
++PV = "2.3.0"
++SRCREV = "242079563b54b4714c889fd4ee32e8dd9960f3b8"
+ 
+ S = "${WORKDIR}/git"
+ 
+ inherit cmake gettext bash-completion distutils3-base systemd
+ 
+-DEPENDS += "libdnf librepo libcomps python3-pygpgme python3-iniparse"
++DEPENDS += "libdnf librepo libcomps python3-iniparse"
+ 
+ # manpages generation requires http://www.sphinx-doc.org/
+ EXTRA_OECMAKE = " -DWITH_MAN=0 -DPYTHON_INSTALL_DIR=${PYTHON_SITEPACKAGES_DIR} -DPYTHON_DESIRED=3"
+ 
+ BBCLASSEXTEND = "native nativesdk"
+-RDEPENDS_${PN}_class-target += "python3-core python3-codecs python3-netclient python3-email python3-threading python3-distutils librepo python3-shell python3-subprocess libcomps libdnf python3-sqlite3 python3-compression python3-pygpgme python3-rpm python3-iniparse python3-json python3-importlib python3-curses python3-argparse python3-misc"
++RDEPENDS_${PN}_class-target += "python3-core python3-codecs python3-netclient python3-email python3-threading python3-distutils librepo python3-shell python3-subprocess libcomps libdnf python3-sqlite3 python3-compression python3-rpm python3-iniparse python3-json python3-importlib python3-curses python3-argparse python3-misc python3-gpg"
+ 
+ # Create a symlink called 'dnf' as 'make install' does not do it, but
+ # .spec file in dnf source tree does (and then Fedora and dnf documentation
+-- 
+2.13.1
+

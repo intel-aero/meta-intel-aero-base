@@ -1,0 +1,29 @@
+From 014467aeeb62e3157e471b2957f9db1c9856b447 Mon Sep 17 00:00:00 2001
+From: Alexander Kanavin <alexander.kanavin@linux.intel.com>
+Date: Wed, 10 May 2017 12:35:28 +0300
+Subject: [PATCH 4/4] dnf: fix upstream version check
+
+(From OE-Core rev: dd277817ae0e1a8e8e604d7d822c3388eb2a3048)
+
+Signed-off-by: Alexander Kanavin <alexander.kanavin@linux.intel.com>
+Signed-off-by: Ross Burton <ross.burton@intel.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+---
+ meta/recipes-devtools/dnf/dnf_git.bb | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/meta/recipes-devtools/dnf/dnf_git.bb b/meta/recipes-devtools/dnf/dnf_git.bb
+index 62c7127ac8..c975900f85 100644
+--- a/meta/recipes-devtools/dnf/dnf_git.bb
++++ b/meta/recipes-devtools/dnf/dnf_git.bb
+@@ -15,6 +15,7 @@ SRC_URI = "git://github.com/rpm-software-management/dnf.git \
+ 
+ PV = "2.3.0"
+ SRCREV = "242079563b54b4714c889fd4ee32e8dd9960f3b8"
++UPSTREAM_CHECK_GITTAGREGEX = "(?P<pver>\d+(\.\d+)+)"
+ 
+ S = "${WORKDIR}/git"
+ 
+-- 
+2.13.1
+
