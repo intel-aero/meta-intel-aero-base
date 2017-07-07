@@ -1,0 +1,48 @@
+From 5ccedbcb8412989d9c13a1f85c290209124b8932 Mon Sep 17 00:00:00 2001
+From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Date: Thu, 2 Mar 2017 20:43:19 -0300
+Subject: [PATCH 31/33] BACKPORT: Documentation: Intel SR300 Depth camera INZI format
+
+Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
+format utilized by Intel SR300 Depth camera.
+
+(cherry picked from commit 5df082e2312c73e6f775c046286455acea9371ea
+ removing the documentation parts to avoid conflicts)
+
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
+ include/uapi/linux/videodev2.h       | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 5b9d97b..550e2f4 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1159,6 +1159,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
++	case V4L2_PIX_FMT_INZI:		descr = "Planar 10:16 Greyscale Depth"; break;
+ 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
+ 	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
+ 	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 847ae07..e08dc83 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -627,6 +627,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
++#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+ 
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+-- 
+2.7.4
+
