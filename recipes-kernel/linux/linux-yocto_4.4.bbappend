@@ -53,6 +53,7 @@ SRC_URI += " \
 	file://0031-BACKPORT-Documentation-Intel-SR300-Depth-camera-INZI-format.patch \
 	file://0032-BACKPORT-media-uvcvideo-Add-bayer-16-bit-format-patterns.patch \
 	file://0033-BACKPORT-media-uvcvideo-Add-support-for-Intel-SR300-depth-cam.patch \
+	file://0044-Add-non-upstream-realsense-camera-formats.patch \
 	"
 
 do_install_append() {
