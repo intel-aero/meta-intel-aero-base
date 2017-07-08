@@ -1,0 +1,77 @@
+From 8197968fa94725e056bad564ece35604d2123762 Mon Sep 17 00:00:00 2001
+From: Edgar Thier <info@edgarthier.net>
+Date: Tue, 15 Nov 2016 03:33:10 -0200
+Subject: [PATCH 32/33] BACKPORT: [media] uvcvideo: Add bayer 16-bit format patterns
+
+Those formats are implemented by The DFK 23UP1300, DFK 23UX249 and
+DFK 23UX250 USB 3.0 industrial cameras from The Imaging Source.
+
+(cherry picked from commit eb165a20dfbe8b82e82b671e9941c4ad9f34388d)
+
+Signed-off-by: Edgar Thier <info@edgarthier.net>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
+ drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 885f689..beeac44 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.guid		= UVC_GUID_FORMAT_RW10,
+ 		.fcc		= V4L2_PIX_FMT_SRGGB10P,
+ 	},
++	{
++		.name		= "Bayer 16-bit (SBGGR16)",
++		.guid		= UVC_GUID_FORMAT_BG16,
++		.fcc		= V4L2_PIX_FMT_SBGGR16,
++	},
++	{
++		.name		= "Bayer 16-bit (SGBRG16)",
++		.guid		= UVC_GUID_FORMAT_GB16,
++		.fcc		= V4L2_PIX_FMT_SGBRG16,
++	},
++	{
++		.name		= "Bayer 16-bit (SRGGB16)",
++		.guid		= UVC_GUID_FORMAT_RG16,
++		.fcc		= V4L2_PIX_FMT_SRGGB16,
++	},
++	{
++		.name		= "Bayer 16-bit (SGRBG16)",
++		.guid		= UVC_GUID_FORMAT_GR16,
++		.fcc		= V4L2_PIX_FMT_SGRBG16,
++	},
+ };
+ 
+ /* ------------------------------------------------------------------------
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 7e4d3ee..3d6cc62 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -106,6 +106,18 @@
+ #define UVC_GUID_FORMAT_RGGB \
+ 	{ 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BG16 \
++	{ 'B',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_GB16 \
++	{ 'G',  'B',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_RG16 \
++	{ 'R',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_GR16 \
++	{ 'G',  'R',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+ #define UVC_GUID_FORMAT_RGBP \
+ 	{ 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+-- 
+2.7.4
+
