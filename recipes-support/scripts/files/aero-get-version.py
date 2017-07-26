@@ -24,16 +24,29 @@ def main():
 def FPGA_version():
     print "FPGA_VERSION =",
     try:
-        # FPGA read incorrectly returns 0x0 when we read first time after boot.
-        # Hence, we will read it twice every time we want to find FPGA version.
-        commands.getstatusoutput("/usr/bin/spi_xfer -b 1 -c 1 -d 00 -w 2")
-        status, output = commands.getstatusoutput("/usr/bin/spi_xfer -b 1 -c 1 -d 00 -w 2")
-        if status != 0:
+        # There is a bug in aero_sample and aero-rtf(now fixed) that was
+        # causing a tranmission delay of 1 byte, that is why was
+        # necessary to read it 2 times to get the right value and the
+        # version was on the wrong byte.
+        # So it will continue reading 2 times and comparing the values read
+        # to decide what to show.
+        status1, output1 = commands.getstatusoutput("/usr/bin/spi_xfer -b 1 -c 1 -d 00 -w 2")
+        status2, output2 = commands.getstatusoutput("/usr/bin/spi_xfer -b 1 -c 1 -d 00 -w 2")
+        if status1 != 0 or status2 != 0:
             print "unknown"
         else:
-            lines = output.split('\n')
+            lines = output1.split('\n')
             words = lines[4].split()
-            print words[1]
+            v1 = words[2]
+
+            lines = output2.split('\n')
+            words = lines[4].split()
+            v2 = words[2]
+
+            if (v2 == v1 and v1 != '0x0'):
+                print v1
+            else:
+                print words[1]
     except:
         print "unknown"
 
