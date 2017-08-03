@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+usage() {
+    echo "Usage: $(basename $0) [FILE]"
+    echo
+    echo "If FILE is not given, /etc/bios/BIOSUPDATE.fv is used"
+    exit
+}
+
+bios=${1:-/etc/bios/BIOSUPDATE.fv}
+
+cp ${bios} /boot/BIOSUPDATE.fv
+
+echo "Bios update set up to take place on next boot"
+echo "It's recommended to have a monitor plugged on hdmi"
+echo "to follow update progress."

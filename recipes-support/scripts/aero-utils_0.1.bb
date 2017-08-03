@@ -16,6 +16,7 @@ SRC_URI = "file://aero-led-ctrl \
                 file://aero-get-version.py \
                 file://aero-reboot-update.py \
                 file://aerofc-force-bootloader-pin.py \
+                file://aero-bios-update \
 		"
 
 S = "${WORKDIR}"
@@ -41,4 +42,6 @@ do_install() {
     install -m 0755 ${WORKDIR}/aero-reboot-update.py ${D}${sbindir}
 
     install -m 0755 ${WORKDIR}/aerofc-force-bootloader-pin.py ${D}${sbindir}
+
+    install -m 0755 ${WORKDIR}/aero-bios-update ${D}${sbindir}
 }
