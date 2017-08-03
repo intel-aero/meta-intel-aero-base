@@ -7,8 +7,8 @@ SRC_URI += "file://BIOSUPDATE.fv\
 	"
 
 do_install_append() {
-	install -d ${D}/boot/
-	install -m 0755 ${WORKDIR}/BIOSUPDATE.fv ${D}/boot/
+	install -d ${D}/etc/bios
+	install -m 0755 ${WORKDIR}/BIOSUPDATE.fv ${D}/etc/bios
 }
 
-FILES_${PN} += "/boot/BIOSUPDATE.fv"
+FILES_${PN} += "/etc/bios/BIOSUPDATE.fv"
