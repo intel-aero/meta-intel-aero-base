@@ -1,10 +1,11 @@
 DESCRIPTION = "BIOS for Intel Aero compute board"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://Proprietary;md5=0557f9d92cf58f2ccdd50f62f8ac0b28"
+LIC_FILES_CHKSUM = "file://${WORKDIR}/LICENSE;md5=0557f9d92cf58f2ccdd50f62f8ac0b28"
+PR = "r1"
 
-SRC_URI += "file://BIOSUPDATE.fv\
-	file://Proprietary\
-	"
+SRC_URI = "file://BIOSUPDATE.fv \
+		file://LICENSE \
+	   "
 
 do_install_append() {
 	install -d ${D}/etc/bios
