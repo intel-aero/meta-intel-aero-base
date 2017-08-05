@@ -1,0 +1,10 @@
+[Unit]
+Description=LED notification on shutdown
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStop=/usr/bin/aero-led-ctrl shutdown_seq
+
+[Install]
+WantedBy=multi-user.target
