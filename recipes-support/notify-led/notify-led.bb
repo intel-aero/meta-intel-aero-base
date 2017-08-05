@@ -9,12 +9,14 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI += "file://init_led_complete.service \
 		file://init_complete.sh \
 		file://init_led_start.service \
-		file://init_start.sh"
+		file://init_start.sh \
+		file://shutdown-led-notify.service \
+		"
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
 PACKAGECONFIG[systemd] = "--enable-systemd --with-systemdsystemunitdir=${systemd_unitdir}/system/,--disable-systemd"
 
-SYSTEMD_SERVICE_${PN} += "init_led_complete.service init_led_start.service"
+SYSTEMD_SERVICE_${PN} += "init_led_complete.service init_led_start.service shutdown-led-notify.service"
 SYSTEMD_AUTO_ENABLE="enable"
 
 FILES_${PN} += "${sbindir}/*"
@@ -27,4 +29,5 @@ do_install_append() {
 
 	install -D -m 0644 ${WORKDIR}/init_led_complete.service ${D}${systemd_unitdir}/system
 	install -D -m 0644 ${WORKDIR}/init_led_start.service ${D}${systemd_unitdir}/system
+	install -D -m 0644 ${WORKDIR}/shutdown-led-notify.service ${D}${systemd_unitdir}/system
 }
