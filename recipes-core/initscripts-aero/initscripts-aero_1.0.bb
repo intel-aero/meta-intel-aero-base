@@ -11,9 +11,6 @@ SRC_URI += "file://aero-wd.service"
 
 inherit systemd
 
-PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
-PACKAGECONFIG[systemd] = "--enable-systemd --with-systemdsystemunitdir=${systemd_unitdir}/system/,--disable-systemd"
-
 do_install () {
 	install -d ${D}${bindir}
 	install -m 0755 ${WORKDIR}/ds4.sh ${D}${bindir}
