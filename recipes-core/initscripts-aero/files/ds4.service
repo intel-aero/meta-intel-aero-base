@@ -1,0 +1,10 @@
+[Unit]
+Description=Configure the power of DS4 camera
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ds4.sh
+
+[Install]
+WantedBy=multi-user.target
