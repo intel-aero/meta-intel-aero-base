@@ -1,0 +1,11 @@
+[Unit]
+Description=Start Aero watchdog
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/aero-watchdog
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
