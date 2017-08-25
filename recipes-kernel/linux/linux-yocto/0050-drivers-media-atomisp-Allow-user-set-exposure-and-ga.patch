@@ -1,0 +1,66 @@
+From 1c938646480dc3899604868cc3fcded97da8d8a4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jos=C3=A9=20Roberto=20de=20Souza?= <jose.souza@intel.com>
+Date: Fri, 25 Aug 2017 12:44:12 -0700
+Subject: [PATCH 6/6] drivers: media: atomisp: Allow user set exposure and gain
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: José Roberto de Souza <jose.souza@intel.com>
+---
+ .../pci/atomisp/atomisp_driver/atomisp_ioctl.c      | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/drivers/media/pci/atomisp/atomisp_driver/atomisp_ioctl.c b/drivers/media/pci/atomisp/atomisp_driver/atomisp_ioctl.c
+index 78decdaf6bea..882c2a9d81af 100644
+--- a/drivers/media/pci/atomisp/atomisp_driver/atomisp_ioctl.c
++++ b/drivers/media/pci/atomisp/atomisp_driver/atomisp_ioctl.c
+@@ -238,6 +238,24 @@ static struct v4l2_queryctrl ci_v4l2_controls[] = {
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
++	{
++		.id = V4L2_CID_EXPOSURE_ABSOLUTE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "exposure absolute",
++		.minimum = -0xFFFF,
++		.maximum = 0xFFFF,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_GAIN,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "gain",
++		.minimum = -0xFFFF,
++		.maximum = 0xFFFF,
++		.step = 1,
++		.default_value = 0,
++	},
+ 	{
+ 		.id = V4L2_CID_EXPOSURE_ZONE_NUM,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+@@ -2241,6 +2259,7 @@ static int atomisp_g_ctrl(struct file *file, void *fh,
+ 	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE:
+ 	case V4L2_CID_EXPOSURE:
+ 	case V4L2_CID_EXPOSURE_AUTO:
++	case V4L2_CID_GAIN:
+ 	case V4L2_CID_SCENE_MODE:
+ 	case V4L2_CID_ISO_SENSITIVITY:
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+@@ -2314,10 +2333,12 @@ static int atomisp_s_ctrl(struct file *file, void *fh,
+ 	switch (control->id) {
+ 	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE:
+ 	case V4L2_CID_EXPOSURE:
++	case V4L2_CID_EXPOSURE_ABSOLUTE:
+ 	case V4L2_CID_HFLIP:
+ 	case V4L2_CID_VFLIP:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
++	case V4L2_CID_GAIN:
+ 	case V4L2_CID_SCENE_MODE:
+ 	case V4L2_CID_ISO_SENSITIVITY:
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+-- 
+2.14.1
+
