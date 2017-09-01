@@ -1,7 +1,7 @@
 DESCRIPTION = "Initialization scripts for Intel Aero"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=751419260aa954499f7abaabaa882bbe"
-PR = "r1"
+PR = "r2"
 
 INHIBIT_DEFAULT_DEPS = "1"
 

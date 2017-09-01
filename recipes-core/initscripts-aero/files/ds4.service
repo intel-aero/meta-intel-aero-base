@@ -1,5 +1,5 @@
 [Unit]
-Description=Configure the power of DS4 camera
+Description=Power on DS4 camera
 After=multi-user.target
 
 [Service]

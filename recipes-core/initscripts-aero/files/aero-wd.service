@@ -1,5 +1,5 @@
 [Unit]
-Description=Start Aero watchdog
+Description=Aero watchdog
 After=multi-user.target
 
 [Service]
