@@ -46,7 +46,6 @@ SRC_URI += " \
 	file://0024-ov7251-remove-early-return-statement.patch \
 	file://0025-intel-mid-split-keyboard-gpio-SFI-implementation-fro.patch \
 	file://0026-input-soc_button_array-add-debounce-parameter-to-the.patch \
-	file://0027-acpi-Workaround-for-not-registering-CAN-controller.patch \
 	file://0028-Temporarily-remove-BXT-PMIC-driver.patch \
 	file://0029-BACKPORT-v4l-Add-16-bit-raw-bayer-pixel-formats.patch \
 	file://0030-BACKPORT-v4l-Add-description-of-the-Y8I-Y12I-and-Z16-formats.patch \
@@ -60,6 +59,7 @@ SRC_URI += " \
 	file://0048-drivers-media-ov7251-Remove-printk-from-__ov7251_set.patch \
 	file://0049-drivers-media-ov7251-Enable-set-exposure-and-gain.patch \
 	file://0050-drivers-media-atomisp-Allow-user-set-exposure-and-ga.patch \
+	file://0051-Add-ACPI-support-for-MCP251x-CAN-controller.patch \
 	"
 
 do_install_append() {
