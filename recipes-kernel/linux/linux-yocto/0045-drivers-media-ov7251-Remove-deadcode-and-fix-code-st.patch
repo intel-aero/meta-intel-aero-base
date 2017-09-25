@@ -1,0 +1,1133 @@
+From 8e4575de9492aea63f0fadf037933a87b0632f5e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jos=C3=A9=20Roberto=20de=20Souza?= <jose.souza@intel.com>
+Date: Wed, 20 Sep 2017 16:20:07 -0700
+Subject: [PATCH 1/6] drivers: media: ov7251: Remove deadcode and fix code
+ style errors
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: José Roberto de Souza <jose.souza@intel.com>
+---
+ drivers/media/i2c/ov7251.c | 168 +---------
+ drivers/media/i2c/ov7251.h | 757 +--------------------------------------------
+ 2 files changed, 12 insertions(+), 913 deletions(-)
+
+diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
+index 9e9c1d930d41..ad537afd57bd 100644
+--- a/drivers/media/i2c/ov7251.c
++++ b/drivers/media/i2c/ov7251.c
+@@ -300,7 +300,7 @@ static int ov7251_get_intg_factor(struct i2c_client *client,
+ 	if (info == NULL)
+ 		return -EINVAL;
+ 
+-	/* pixel clock calculattion */
++	/* pixel clock calculation */
+ 	ret =  ov7251_read_reg(client, OV7251_8BIT,
+ 				OV7251_SC_CMMN_PLL_CTRL3, &pre_pll_clk_div);
+ 	if (ret)
+@@ -317,7 +317,7 @@ static int ov7251_get_intg_factor(struct i2c_client *client,
+ 		return ret;
+ 
+ 	pre_pll_clk_div = (pre_pll_clk_div & 0x70) >> 4;
+-	if (0 == pre_pll_clk_div)
++	if (pre_pll_clk_div == 0)
+ 		return -EINVAL;
+ 
+ 	pll_multiplier = pll_multiplier & 0x7f;
+@@ -634,6 +634,7 @@ static int ov7251_q_exposure(struct v4l2_subdev *sd, s32 *value)
+ err:
+ 	return ret;
+ }
++
+ struct ov7251_control ov7251_controls[] = {
+ 	{
+ 		.qc = {
+@@ -789,13 +790,6 @@ static int ov7251_init(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-
+-
+-
+-
+-
+-
+-
+ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ {
+ 	int ret = -1;
+@@ -828,10 +822,6 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	return ret;
+ }
+ 
+-
+-
+-
+-
+ static int gpio_ctrl(struct v4l2_subdev *sd, bool flag)
+ {
+ 	struct ov7251_device *dev = to_ov7251_sensor(sd);
+@@ -856,48 +846,13 @@ static int gpio_ctrl(struct v4l2_subdev *sd, bool flag)
+ 	return ret;
+ }
+ 
+-#if 0
+-
+-static int reset_gpio = 0;
+-
+-#define UC_RESET 396 /*144//148 */
+-
+-
+-static int tanstamp_gpio_ctrl(struct i2c_client *client, bool flag)
+-{
+-	int ret = -1;
+-
+-	if (!reset_gpio) {
+-		reset_gpio = UC_RESET;
+-		ret = gpio_request(reset_gpio, "uc_reset");
+-		if (!ret)
+-			ret = gpio_direction_output(reset_gpio, 0);
+-		if (ret)
+-			pr_err("uc_reset GPIO initialization failed\n");
+-	}
+-
+-
+-	if (flag) {
+-		gpio_set_value(reset_gpio, flag);
+-		usleep_range(5000, 6000);
+-	} else {
+-		gpio_set_value(reset_gpio, flag);
+-		usleep_range(5000, 6000);
+-	}
+-
+-	return 0;
+-	/*return ret; */
+-}
+-
+-#endif
+-
+ static int power_up(struct v4l2_subdev *sd)
+ {
+ 	struct ov7251_device *dev = to_ov7251_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret;
+ 
+-	if (NULL == dev->platform_data) {
++	if (dev->platform_data == NULL) {
+ 		dev_err(&client->dev,
+ 			"no camera_sensor_platform_data");
+ 		return -ENODEV;
+@@ -947,7 +902,7 @@ static int power_down(struct v4l2_subdev *sd)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
+ 
+-	if (NULL == dev->platform_data) {
++	if (dev->platform_data == NULL) {
+ 		dev_err(&client->dev,
+ 			"no camera_sensor_platform_data");
+ 		return -ENODEV;
+@@ -973,6 +928,7 @@ static int power_down(struct v4l2_subdev *sd)
+ static int ov7251_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	int ret;
++
+ 	if (on == 0)
+ 		return power_down(sd);
+ 	else {
+@@ -1180,12 +1136,6 @@ static int ov7251_detect(struct i2c_client *client)
+ 	ret = ov7251_read_reg(client, OV7251_8BIT,
+ 					OV7251_SC_CMMN_CHIP_ID_L, &low);
+ 	id = ((((u16) high) << 8) | (u16) low);
+-#if 0
+-	if ((id != OV7251_ID) && (id != OV2720_ID)) {
+-		dev_err(&client->dev, "sensor ID error\n");
+-		return -ENODEV;
+-	}
+-#endif
+ 	ret = ov7251_read_reg(client, OV7251_8BIT,
+ 					OV7251_SC_CMMN_SUB_ID, &high);
+ 	revision = (u8) high & 0x0f;
+@@ -1195,100 +1145,13 @@ static int ov7251_detect(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-#if 0
+-static struct workqueue_struct *my_wq;
+-
+-typedef struct {
+-	struct work_struct my_work;
+-	struct ov7251_device *dev;
+-	struct i2c_client *client;
+-	int enable;
+-} stream_set_t;
+-
+-stream_set_t *work1, *work2;
+-
+-
+-int sleep_time = 10000;
+-
+-static void stream_wq_function(struct work_struct *work)
+-{
+-	int ret;
+-
+-	stream_set_t *my_work = (stream_set_t *)work;
+-
+-	ret = 0;
+-	printk("tal i2c my_work \n");
+-	if (my_work->enable == 1) {
+-		msleep(200);
+-	}
+-
+-	printk("tal i2c my_work after sleep.x %d\n", my_work->enable);
+-
+-
+-	mutex_lock(&my_work->dev->input_lock);
+-
+-/*	if (my_work->enable == 0)
+-//	{
+-//		return;
+-//	} */
+-
+-	ret = ov7251_write_reg(my_work->client, OV7251_8BIT, OV7251_SW_STREAM,
+-				my_work->enable ? OV7251_START_STREAMING :
+-				OV7251_STOP_STREAMING);
+-
+-	/*todo: adding sleep after start due to potential issues with ae commands might be too early compared to stream-on */
+-	msleep(200);
+-
+-
+-/*	printk( "tal i2c my_work: sleeping between on/off for %d ms \n", sleep_time );
+-//	usleep_range(sleep_time-500, sleep_time+500);
+-//	printk( "tal i2c my_work: done sleeping between on/off for %d ms \n", sleep_time );
+-//	sleep_time += 10000;
+-
+-//	ret = ov7251_write_reg(my_work->client, OV7251_8BIT, OV7251_SW_STREAM,
+-//				OV7251_STOP_STREAMING); */
+-
+-
+-	mutex_unlock(&my_work->dev->input_lock);
+-
+-	kfree((void *)work);
+-
+-	return;
+-}
+-bool wq_created = false;
+-#endif
+ static int ov7251_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct ov7251_device *dev = to_ov7251_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
+-/*	u16 high; */
+ 
+ 	printk(KERN_ERR "tal test stream called %d\n", enable);
+-#if 0
+-	if (!wq_created) {
+-		my_wq = create_workqueue("stream_queue");
+-		wq_created = true;
+-	}
+-
+-	work1 = (stream_set_t *)kmalloc(sizeof(stream_set_t), GFP_KERNEL);
+-
+-	if (work1) {
+-
+-		INIT_WORK((struct work_struct *)work1, stream_wq_function);
+-
+-		work1->dev = dev;
+-		work1->enable = enable;
+-		work1->client = client;
+-
+-/*		ret = queue_work( my_wq, (struct work_struct *)work1 ); */
+-
+-	}
+-
+-	/*todo flush & close work-queue, probably requires moving to module-level init/close */
+-#endif
+-/*	ret = ov7251_read_reg(client, OV7251_8BIT,
+-//					OV7251_SC_CMMN_CHIP_ID_H, &high); */
+ 	mutex_lock(&dev->input_lock);
+ 
+ 	ret = ov7251_write_reg(client, OV7251_8BIT, OV7251_SW_STREAM,
+@@ -1444,6 +1307,7 @@ static int ov7251_s_parm(struct v4l2_subdev *sd,
+ 			struct v4l2_streamparm *param)
+ {
+ 	struct ov7251_device *dev = to_ov7251_sensor(sd);
++
+ 	dev->run_mode = param->parm.capture.capturemode;
+ 
+ 	mutex_lock(&dev->input_lock);
+@@ -1624,6 +1488,7 @@ static int ov7251_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct ov7251_device *dev = to_ov7251_sensor(sd);
++
+ 	dev_dbg(&client->dev, "ov7251_remove...\n");
+ 
+ 	if (dev->platform_data->platform_deinit)
+@@ -1709,7 +1574,7 @@ static ssize_t spower_store(struct device *dev,
+ 	return count;
+ }
+ 
+-static u16 tmp_reg = 0;
++static u16 tmp_reg;
+ 
+ 
+ static ssize_t reg_show(struct device *dev,
+@@ -1770,20 +1635,6 @@ static ssize_t init_store(struct device *dev,
+ 	return count;
+ }
+ 
+-
+-#if 0
+-static DEVICE_ATTR(value, S_IRUGO,
+-		ov_value_show, NULL);
+-
+-static DEVICE_ATTR(spower, S_IWUSR|S_IWGRP|S_IWOTH,
+-		NULL, ov_set_power);
+-
+-static DEVICE_ATTR(reg, S_IRUGO|S_IWUSR|S_IWGRP|S_IWOTH,
+-		ov_get_reg, ov_set_reg);
+-
+-static DEVICE_ATTR(init, S_IWUSR|S_IWGRP|S_IWOTH,
+-		NULL, ov_set_default);
+-#endif
+ static DEVICE_ATTR_RO(value);
+ 
+ static DEVICE_ATTR_WO(spower);
+@@ -1931,7 +1782,6 @@ static int init_ov7251(void)
+ 
+ static void exit_ov7251(void)
+ {
+-
+ 	i2c_del_driver(&ov7251_driver);
+ }
+ 
+diff --git a/drivers/media/i2c/ov7251.h b/drivers/media/i2c/ov7251.h
+index a64b5676392a..20116d994aa4 100644
+--- a/drivers/media/i2c/ov7251.h
++++ b/drivers/media/i2c/ov7251.h
+@@ -172,7 +172,6 @@ struct ov7251_resolution {
+ 	int width;
+ 	int height;
+ 	int fps;
+-	int pix_clk_freq;
+ 	u32 skip_frames;
+ 	u16 pixels_per_line;
+ 	u16 lines_per_frame;
+@@ -183,12 +182,6 @@ struct ov7251_resolution {
+ 	int mipi_freq;
+ };
+ 
+-struct ov7251_format {
+-	u8 *desc;
+-	u32 pixelformat;
+-	struct ov7251_reg *regs;
+-};
+-
+ struct ov7251_control {
+ 	struct v4l2_queryctrl qc;
+ 	int (*query)(struct v4l2_subdev *sd, s32 *value);
+@@ -262,120 +255,6 @@ static const struct i2c_device_id ov7251_id[] = {
+ 	{}
+ };
+ 
+-/*
+- * Register settings for various resolution
+- */
+-static struct ov7251_reg const ov7251_QVGA_30fps[] = {
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x0c},
+-	{OV7251_8BIT, 0x373a, 0x1c},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x0c},
+-	{OV7251_8BIT, 0x3705, 0x06},
+-	{OV7251_8BIT, 0x3730, 0x0e},
+-	{OV7251_8BIT, 0x3704, 0x1c},
+-	{OV7251_8BIT, 0x3f06, 0x00},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0x46},
+-	{OV7251_8BIT, 0x371e, 0x00},
+-	{OV7251_8BIT, 0x371f, 0x63},
+-	{OV7251_8BIT, 0x3708, 0x61},
+-	{OV7251_8BIT, 0x3709, 0x12},
+-	{OV7251_8BIT, 0x3800, 0x01},
+-	{OV7251_8BIT, 0x3801, 0x42}, /* H crop start: 322 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0x20}, /* V crop start: 32 */
+-	{OV7251_8BIT, 0x3804, 0x06},
+-	{OV7251_8BIT, 0x3805, 0x95}, /* H crop end:  1685 */
+-	{OV7251_8BIT, 0x3806, 0x04},
+-	{OV7251_8BIT, 0x3807, 0x27}, /* V crop end:  1063 */
+-	{OV7251_8BIT, 0x3808, 0x01},
+-	{OV7251_8BIT, 0x3809, 0x50}, /* H output size: 336 */
+-	{OV7251_8BIT, 0x380a, 0x01},
+-	{OV7251_8BIT, 0x380b, 0x00}, /* V output size: 256 */
+-
+-	/* H blank timing */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0x00}, /* H total size: 2048 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xa0}, /* V total size: 1184 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x04}, /* H window offset: 5 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x01}, /* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0xc0},
+-	{OV7251_8BIT, 0x3821, 0x06}, /* flip isp*/
+-	{OV7251_8BIT, 0x3814, 0x71},
+-	{OV7251_8BIT, 0x3815, 0x71},
+-	{OV7251_8BIT, 0x3612, 0x49},
+-	{OV7251_8BIT, 0x3618, 0x00},
+-	{OV7251_8BIT, 0x3a08, 0x01},
+-	{OV7251_8BIT, 0x3a09, 0xc3},
+-	{OV7251_8BIT, 0x3a0a, 0x01},
+-	{OV7251_8BIT, 0x3a0b, 0x77},
+-	{OV7251_8BIT, 0x3a0d, 0x00},
+-	{OV7251_8BIT, 0x3a0e, 0x00},
+-	{OV7251_8BIT, 0x4520, 0x09},
+-	{OV7251_8BIT, 0x4837, 0x1b},
+-	{OV7251_8BIT, 0x3000, 0xff},
+-	{OV7251_8BIT, 0x3001, 0xff},
+-	{OV7251_8BIT, 0x3002, 0xf0},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0x53}, /* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x63},
+-	{OV7251_8BIT, 0x3634, 0x24},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1}, /* v_en, h_en, blc_en */
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xff},
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0}, /* AWB red */
+-	{OV7251_8BIT, 0x5184, 0xb0}, /* AWB green */
+-	{OV7251_8BIT, 0x5185, 0xb0}, /* AWB blue */
+-	{OV7251_8BIT, 0x5180, 0x03}, /* AWB manual mode */
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x4800, 0x24}, /* clk lane gate enable */
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x26},
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-
+-	/* Added for power optimization */
+-	{OV7251_8BIT, 0x3000, 0x00},
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3011, 0x22},
+-	{OV7251_8BIT, 0x3a00, 0x58},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x46},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x10},
+-	{OV7251_TOK_TERM, 0, 0},
+-
+-};
+-
+ static struct ov7251_reg const ov7251_480P_30fps[] = {
+ /*	{OV7251_8BIT, 0x103, 0x1}, */
+ 	{OV7251_8BIT, 0x100, 0x0},
+@@ -473,7 +352,7 @@ static struct ov7251_reg const ov7251_480P_30fps[] = {
+ 	{OV7251_8BIT, 0x3814, 0x11},
+ 	{OV7251_8BIT, 0x3815, 0x11},
+ 
+-/*      Ziv Start */
++	/* Ziv Start */
+ 	{OV7251_8BIT, 0x3820, 0x40},
+ 	{OV7251_8BIT, 0x3821, 0x00},
+ 	{OV7251_8BIT, 0x382f, 0x0e},
+@@ -484,7 +363,7 @@ static struct ov7251_reg const ov7251_480P_30fps[] = {
+ 	{OV7251_8BIT, 0x3837, 0x00},
+ 	{OV7251_8BIT, 0x3b80, 0x00},
+ 
+-	{OV7251_8BIT, 0x3b81, 0xff}, /*strobe frame pattern */
++	{OV7251_8BIT, 0x3b81, 0xff}, /* strobe frame pattern */
+ 
+ 	{OV7251_8BIT, 0x3b82, 0x10},
+ 	{OV7251_8BIT, 0x3b83, 0x00},
+@@ -545,635 +424,8 @@ static struct ov7251_reg const ov7251_480P_30fps[] = {
+ 	{OV7251_8BIT, 0x5000, 0x85}, /* ISP CRTL00 */
+ 	{OV7251_8BIT, 0x5001, 0x80}, /* ISP CRTL01 */
+ 
+-/*	Ziv End
+-
+-//	{OV7251_8BIT, 0x5E00, 0x8C}, // test pattern, remove */
+-
+-	{OV7251_TOK_TERM, 0, 0},
+-};
+-
+-static struct ov7251_reg const ov7251_VGA_30fps[] = {
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x18},
+-	{OV7251_8BIT, 0x373a, 0x3c},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x1d},
+-	{OV7251_8BIT, 0x3705, 0x12},
+-	{OV7251_8BIT, 0x3730, 0x1f},
+-	{OV7251_8BIT, 0x3704, 0x3f},
+-	{OV7251_8BIT, 0x3f06, 0x1d},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0x83},
+-	{OV7251_8BIT, 0x371e, 0x00},
+-	{OV7251_8BIT, 0x371f, 0xbd},
+-	{OV7251_8BIT, 0x3708, 0x63},
+-	{OV7251_8BIT, 0x3709, 0x52},
+-	{OV7251_8BIT, 0x3800, 0x01},
+-	{OV7251_8BIT, 0x3801, 0x42}, /* H crop start: 322 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0x20}, /* V crop start:  32*/
+-	{OV7251_8BIT, 0x3804, 0x06},
+-	{OV7251_8BIT, 0x3805, 0x6B}, /* H crop end:   1643*/
+-	{OV7251_8BIT, 0x3806, 0x04},
+-	{OV7251_8BIT, 0x3807, 0x03}, /* V crop end:   1027*/
+-	{OV7251_8BIT, 0x3808, 0x02},
+-	{OV7251_8BIT, 0x3809, 0x90}, /* H output size: 656 */
+-	{OV7251_8BIT, 0x380a, 0x01},
+-	{OV7251_8BIT, 0x380b, 0xF0}, /* V output size: 496 */
+-
+-	/* H blank timing */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0x00}, /* H total size: 2048 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xa0}, /* V total size: 1184 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x04}, /* H window offset: 5 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x01}, /* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0x80},
+-	{OV7251_8BIT, 0x3821, 0x06}, /* flip isp*/
+-	{OV7251_8BIT, 0x3814, 0x31},
+-	{OV7251_8BIT, 0x3815, 0x31},
+-	{OV7251_8BIT, 0x3612, 0x4b},
+-	{OV7251_8BIT, 0x3618, 0x04},
+-	{OV7251_8BIT, 0x3a08, 0x02},
+-	{OV7251_8BIT, 0x3a09, 0x67},
+-	{OV7251_8BIT, 0x3a0a, 0x02},
+-	{OV7251_8BIT, 0x3a0b, 0x00},
+-	{OV7251_8BIT, 0x3a0d, 0x00},
+-	{OV7251_8BIT, 0x3a0e, 0x00},
+-	{OV7251_8BIT, 0x4520, 0x0a},
+-	{OV7251_8BIT, 0x4837, 0x29},
+-	{OV7251_8BIT, 0x3000, 0xff},
+-	{OV7251_8BIT, 0x3001, 0xff},
+-	{OV7251_8BIT, 0x3002, 0xf0},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0x53}, /* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x63},
+-	{OV7251_8BIT, 0x3634, 0x24},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1}, /* v_en, h_en, blc_en */
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xff},
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x00},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0}, /* AWB red */
+-	{OV7251_8BIT, 0x5184, 0xb0}, /* AWB green */
+-	{OV7251_8BIT, 0x5185, 0xb0}, /* AWB blue */
+-	{OV7251_8BIT, 0x5180, 0x03}, /* AWB manual mode */
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x4800, 0x24}, /* clk lane gate enable */
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x26},
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-
+-	/* Added for power optimization */
+-	{OV7251_8BIT, 0x3000, 0x00},
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3011, 0x22},
+-	{OV7251_8BIT, 0x3a00, 0x58},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x46},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x10},
+-	{OV7251_TOK_TERM, 0, 0},
+-};
+-
+-static struct ov7251_reg const ov7251_1632_1092_30fps[] = {
+-	{OV7251_8BIT, 0x3021, 0x03}, /* For stand wait for
+-				a whole frame complete.(vblank) */
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x24},
+-	{OV7251_8BIT, 0x373a, 0x60},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x2e},
+-	{OV7251_8BIT, 0x3705, 0x10},
+-	{OV7251_8BIT, 0x3730, 0x30},
+-	{OV7251_8BIT, 0x3704, 0x62},
+-	{OV7251_8BIT, 0x3f06, 0x3a},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0xc4},
+-	{OV7251_8BIT, 0x371e, 0x01},
+-	{OV7251_8BIT, 0x371f, 0x0d},
+-	{OV7251_8BIT, 0x3708, 0x61},
+-	{OV7251_8BIT, 0x3709, 0x12},
+-	{OV7251_8BIT, 0x3800, 0x00},
+-	{OV7251_8BIT, 0x3801, 0x9E}, /* H crop start: 158 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0x01}, /* V crop start: 1 */
+-	{OV7251_8BIT, 0x3804, 0x07},
+-	{OV7251_8BIT, 0x3805, 0x05}, /* H crop end: 1797 */
+-	{OV7251_8BIT, 0x3806, 0x04},
+-	{OV7251_8BIT, 0x3807, 0x45}, /* V crop end: 1093 */
+-
+-	{OV7251_8BIT, 0x3808, 0x06},
+-	{OV7251_8BIT, 0x3809, 0x60}, /* H output size: 1632 */
+-	{OV7251_8BIT, 0x380a, 0x04},
+-	{OV7251_8BIT, 0x380b, 0x44}, /* V output size: 1092 */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0xd4}, /* H timing: 2260 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xdc}, /* V timing: 1244 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x03}, /* H window offset: 3 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x02}, /* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0x80},
+-	{OV7251_8BIT, 0x3821, 0x06}, /*  mirror */
+-	{OV7251_8BIT, 0x3814, 0x11},
+-	{OV7251_8BIT, 0x3815, 0x11},
+-	{OV7251_8BIT, 0x3612, 0x0b},
+-	{OV7251_8BIT, 0x3618, 0x04},
+-	{OV7251_8BIT, 0x3a08, 0x01},
+-	{OV7251_8BIT, 0x3a09, 0x50},
+-	{OV7251_8BIT, 0x3a0a, 0x01},
+-	{OV7251_8BIT, 0x3a0b, 0x18},
+-	{OV7251_8BIT, 0x3a0d, 0x03},
+-	{OV7251_8BIT, 0x3a0e, 0x03},
+-	{OV7251_8BIT, 0x4520, 0x00},
+-	{OV7251_8BIT, 0x4837, 0x1b},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0xd2}, /* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x23},
+-	{OV7251_8BIT, 0x3634, 0x54},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1},
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xcf}, /* manual 3a */
+-	{OV7251_8BIT, 0x301d, 0xf0}, /* enable group hold */
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0},
+-	{OV7251_8BIT, 0x5184, 0xb0},
+-	{OV7251_8BIT, 0x5185, 0xb0},
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x2c}, /* 422.4 MHz */
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-	{OV7251_8BIT, 0x3000, 0x00}, /* added for power optimization */
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3503, 0x07}, /* manual 3a */
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x3F},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x00},
+-	{OV7251_TOK_TERM, 0, 0}
+-};
+-
+-static struct ov7251_reg const ov7251_1452_1092_30fps[] = {
+-	{OV7251_8BIT, 0x3021, 0x03}, /* For stand wait for
+-				a whole frame complete.(vblank) */
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x24},
+-	{OV7251_8BIT, 0x373a, 0x60},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x2e},
+-	{OV7251_8BIT, 0x3705, 0x10},
+-	{OV7251_8BIT, 0x3730, 0x30},
+-	{OV7251_8BIT, 0x3704, 0x62},
+-	{OV7251_8BIT, 0x3f06, 0x3a},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0xc4},
+-	{OV7251_8BIT, 0x371e, 0x01},
+-	{OV7251_8BIT, 0x371f, 0x0d},
+-	{OV7251_8BIT, 0x3708, 0x61},
+-	{OV7251_8BIT, 0x3709, 0x12},
+-	{OV7251_8BIT, 0x3800, 0x00},
+-	{OV7251_8BIT, 0x3801, 0xF8}, /* H crop start: 248 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0x01}, /* V crop start: 1 */
+-	{OV7251_8BIT, 0x3804, 0x06},
+-	{OV7251_8BIT, 0x3805, 0xab}, /* H crop end: 1707 */
+-	{OV7251_8BIT, 0x3806, 0x04},
+-	{OV7251_8BIT, 0x3807, 0x45}, /* V crop end: 1093 */
+-	{OV7251_8BIT, 0x3808, 0x05},
+-	{OV7251_8BIT, 0x3809, 0xac}, /* H output size: 1452 */
+-	{OV7251_8BIT, 0x380a, 0x04},
+-	{OV7251_8BIT, 0x380b, 0x44}, /* V output size: 1092 */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0xd4}, /* H timing: 2260 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xdc}, /* V timing: 1244 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x03}, /* H window offset: 3 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x02}, /* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0x80},
+-	{OV7251_8BIT, 0x3821, 0x06}, /*  mirror */
+-	{OV7251_8BIT, 0x3814, 0x11},
+-	{OV7251_8BIT, 0x3815, 0x11},
+-	{OV7251_8BIT, 0x3612, 0x0b},
+-	{OV7251_8BIT, 0x3618, 0x04},
+-	{OV7251_8BIT, 0x3a08, 0x01},
+-	{OV7251_8BIT, 0x3a09, 0x50},
+-	{OV7251_8BIT, 0x3a0a, 0x01},
+-	{OV7251_8BIT, 0x3a0b, 0x18},
+-	{OV7251_8BIT, 0x3a0d, 0x03},
+-	{OV7251_8BIT, 0x3a0e, 0x03},
+-	{OV7251_8BIT, 0x4520, 0x00},
+-	{OV7251_8BIT, 0x4837, 0x1b},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0xd2}, /* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x23},
+-	{OV7251_8BIT, 0x3634, 0x54},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1},
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xcf}, /* manual 3a */
+-	{OV7251_8BIT, 0x301d, 0xf0}, /* enable group hold */
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0},
+-	{OV7251_8BIT, 0x5184, 0xb0},
+-	{OV7251_8BIT, 0x5185, 0xb0},
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x2c}, /* 422.4 MHz */
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-	{OV7251_8BIT, 0x3000, 0x00}, /* added for power optimization */
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3503, 0x07}, /* manual 3a */
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x3F},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x00},
+-	{OV7251_TOK_TERM, 0, 0}
+-};
+-static struct ov7251_reg const ov7251_1M3_30fps[] = {
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x24},
+-	{OV7251_8BIT, 0x373a, 0x60},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x2e},
+-	{OV7251_8BIT, 0x3705, 0x10},
+-	{OV7251_8BIT, 0x3730, 0x30},
+-	{OV7251_8BIT, 0x3704, 0x62},
+-	{OV7251_8BIT, 0x3f06, 0x3a},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0xc4},
+-	{OV7251_8BIT, 0x371e, 0x01},
+-	{OV7251_8BIT, 0x371f, 0x0d},
+-	{OV7251_8BIT, 0x3708, 0x61},
+-	{OV7251_8BIT, 0x3709, 0x12},
+-	{OV7251_8BIT, 0x3800, 0x01},
+-	{OV7251_8BIT, 0x3801, 0x4a},	/* H crop start: 330 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0x03},	/* V crop start: 3 */
+-	{OV7251_8BIT, 0x3804, 0x06},
+-	{OV7251_8BIT, 0x3805, 0xe1},	/* H crop end:  1761 */
+-	{OV7251_8BIT, 0x3806, 0x04},
+-	{OV7251_8BIT, 0x3807, 0x47},	/* V crop end:  1095 */
+-	{OV7251_8BIT, 0x3808, 0x05},
+-	{OV7251_8BIT, 0x3809, 0x88},	/* H output size: 1416 */
+-	{OV7251_8BIT, 0x380a, 0x04},
+-	{OV7251_8BIT, 0x380b, 0x0a},	/* V output size: 1034 */
+-
+-	/* H blank timing */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0x00},	/* H total size: 2048 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xa0},	/* V total size: 1184 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x05},	/* H window offset: 5 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x02},	/* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0x80},
+-	{OV7251_8BIT, 0x3821, 0x06},	/* flip isp */
+-	{OV7251_8BIT, 0x3814, 0x11},
+-	{OV7251_8BIT, 0x3815, 0x11},
+-	{OV7251_8BIT, 0x3612, 0x0b},
+-	{OV7251_8BIT, 0x3618, 0x04},
+-	{OV7251_8BIT, 0x3a08, 0x01},
+-	{OV7251_8BIT, 0x3a09, 0x50},
+-	{OV7251_8BIT, 0x3a0a, 0x01},
+-	{OV7251_8BIT, 0x3a0b, 0x18},
+-	{OV7251_8BIT, 0x3a0d, 0x03},
+-	{OV7251_8BIT, 0x3a0e, 0x03},
+-	{OV7251_8BIT, 0x4520, 0x00},
+-	{OV7251_8BIT, 0x4837, 0x1b},
+-	{OV7251_8BIT, 0x3000, 0xff},
+-	{OV7251_8BIT, 0x3001, 0xff},
+-	{OV7251_8BIT, 0x3002, 0xf0},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0xd2},	/* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x23},
+-	{OV7251_8BIT, 0x3634, 0x54},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1},	/* v_en, h_en, blc_en */
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xcf},
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0},	/* AWB red */
+-	{OV7251_8BIT, 0x5184, 0xb0},	/* AWB green */
+-	{OV7251_8BIT, 0x5185, 0xb0},	/* AWB blue */
+-	{OV7251_8BIT, 0x5180, 0x03},	/* AWB manual mode */
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x4800, 0x24},	/* clk lane gate enable */
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x26},
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-
+-	/* Added for power optimization */
+-	{OV7251_8BIT, 0x3000, 0x00},
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x46},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x10},
+-	{OV7251_TOK_TERM, 0, 0},
+-};
+-
+-static struct ov7251_reg const ov7251_1080p_30fps[] = {
+-	{OV7251_8BIT, 0x3021, 0x03}, /* For stand wait for
+-				a whole frame complete.(vblank) */
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x24},
+-	{OV7251_8BIT, 0x373a, 0x60},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x2e},
+-	{OV7251_8BIT, 0x3705, 0x10},
+-	{OV7251_8BIT, 0x3730, 0x30},
+-	{OV7251_8BIT, 0x3704, 0x62},
+-	{OV7251_8BIT, 0x3f06, 0x3a},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0xc4},
+-	{OV7251_8BIT, 0x371e, 0x01},
+-	{OV7251_8BIT, 0x371f, 0x0d},
+-	{OV7251_8BIT, 0x3708, 0x61},
+-	{OV7251_8BIT, 0x3709, 0x12},
+-	{OV7251_8BIT, 0x3800, 0x00},
+-	{OV7251_8BIT, 0x3801, 0x08}, /* H crop start: 8 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0x01}, /* V crop start: 1 */
+-	{OV7251_8BIT, 0x3804, 0x07},
+-	{OV7251_8BIT, 0x3805, 0x9b}, /* H crop end: 1947 */
+-	{OV7251_8BIT, 0x3806, 0x04},
+-	{OV7251_8BIT, 0x3807, 0x45}, /* V crop end: 1093 */
+-	{OV7251_8BIT, 0x3808, 0x07},
+-	{OV7251_8BIT, 0x3809, 0x8c}, /* H output size: 1932 */
+-	{OV7251_8BIT, 0x380a, 0x04},
+-	{OV7251_8BIT, 0x380b, 0x44}, /* V output size: 1092 */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0xd4}, /* H timing: 2260 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xdc}, /* V timing: 1244 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x03}, /* H window offset: 3 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x02}, /* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0x80},
+-	{OV7251_8BIT, 0x3821, 0x06}, /*  mirror */
+-	{OV7251_8BIT, 0x3814, 0x11},
+-	{OV7251_8BIT, 0x3815, 0x11},
+-	{OV7251_8BIT, 0x3612, 0x0b},
+-	{OV7251_8BIT, 0x3618, 0x04},
+-	{OV7251_8BIT, 0x3a08, 0x01},
+-	{OV7251_8BIT, 0x3a09, 0x50},
+-	{OV7251_8BIT, 0x3a0a, 0x01},
+-	{OV7251_8BIT, 0x3a0b, 0x18},
+-	{OV7251_8BIT, 0x3a0d, 0x03},
+-	{OV7251_8BIT, 0x3a0e, 0x03},
+-	{OV7251_8BIT, 0x4520, 0x00},
+-	{OV7251_8BIT, 0x4837, 0x1b},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0xd2}, /* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x23},
+-	{OV7251_8BIT, 0x3634, 0x54},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1},
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xcf}, /* manual 3a */
+-	{OV7251_8BIT, 0x301d, 0xf0}, /* enable group hold */
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0},
+-	{OV7251_8BIT, 0x5184, 0xb0},
+-	{OV7251_8BIT, 0x5185, 0xb0},
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x2c}, /* 422.4 MHz */
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-	{OV7251_8BIT, 0x3000, 0x00}, /* added for power optimization */
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3503, 0x07}, /* manual 3a */
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x3F},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x00},
+-	{OV7251_TOK_TERM, 0, 0}
+-};
++	/*	Ziv End */
+ 
+-static struct ov7251_reg const ov7251_720p_30fps[] = {
+-	{OV7251_8BIT, 0x3021, 0x03},
+-	{OV7251_8BIT, 0x3718, 0x10},
+-	{OV7251_8BIT, 0x3702, 0x24},
+-	{OV7251_8BIT, 0x373a, 0x60},
+-	{OV7251_8BIT, 0x3715, 0x01},
+-	{OV7251_8BIT, 0x3703, 0x2e},
+-	{OV7251_8BIT, 0x3705, 0x10},
+-	{OV7251_8BIT, 0x3730, 0x30},
+-	{OV7251_8BIT, 0x3704, 0x62},
+-	{OV7251_8BIT, 0x3f06, 0x3a},
+-	{OV7251_8BIT, 0x371c, 0x00},
+-	{OV7251_8BIT, 0x371d, 0xc4},
+-	{OV7251_8BIT, 0x371e, 0x01},
+-	{OV7251_8BIT, 0x371f, 0x0d},
+-	{OV7251_8BIT, 0x3708, 0x61},
+-	{OV7251_8BIT, 0x3709, 0x12},
+-	{OV7251_8BIT, 0x3800, 0x01},
+-	{OV7251_8BIT, 0x3801, 0x40}, /* H crop start: 320 */
+-	{OV7251_8BIT, 0x3802, 0x00},
+-	{OV7251_8BIT, 0x3803, 0xb1}, /* V crop start: 177 */
+-	{OV7251_8BIT, 0x3804, 0x06},
+-	{OV7251_8BIT, 0x3805, 0x55}, /* H crop end: 1621 */
+-	{OV7251_8BIT, 0x3806, 0x03},
+-	{OV7251_8BIT, 0x3807, 0x95}, /* V crop end: 918 */
+-	{OV7251_8BIT, 0x3808, 0x05},
+-	{OV7251_8BIT, 0x3809, 0x10}, /* H output size: 0x0788==1928 */
+-	{OV7251_8BIT, 0x380a, 0x02},
+-	{OV7251_8BIT, 0x380b, 0xe0}, /* output size: 0x02DE==734 */
+-	{OV7251_8BIT, 0x380c, 0x08},
+-	{OV7251_8BIT, 0x380d, 0x00}, /* H timing: 2048 */
+-	{OV7251_8BIT, 0x380e, 0x04},
+-	{OV7251_8BIT, 0x380f, 0xa3}, /* V timing: 1187 */
+-	{OV7251_8BIT, 0x3810, 0x00},
+-	{OV7251_8BIT, 0x3811, 0x03}, /* H window offset: 3 */
+-	{OV7251_8BIT, 0x3812, 0x00},
+-	{OV7251_8BIT, 0x3813, 0x02}, /* V window offset: 2 */
+-	{OV7251_8BIT, 0x3820, 0x80},
+-	{OV7251_8BIT, 0x3821, 0x06}, /* mirror */
+-	{OV7251_8BIT, 0x3814, 0x11},
+-	{OV7251_8BIT, 0x3815, 0x11},
+-	{OV7251_8BIT, 0x3612, 0x0b},
+-	{OV7251_8BIT, 0x3618, 0x04},
+-	{OV7251_8BIT, 0x3a08, 0x01},
+-	{OV7251_8BIT, 0x3a09, 0x50},
+-	{OV7251_8BIT, 0x3a0a, 0x01},
+-	{OV7251_8BIT, 0x3a0b, 0x18},
+-	{OV7251_8BIT, 0x3a0d, 0x03},
+-	{OV7251_8BIT, 0x3a0e, 0x03},
+-	{OV7251_8BIT, 0x4520, 0x00},
+-	{OV7251_8BIT, 0x4837, 0x1b},
+-	{OV7251_8BIT, 0x3600, 0x08},
+-	{OV7251_8BIT, 0x3621, 0xc0},
+-	{OV7251_8BIT, 0x3632, 0xd2}, /* added for power opt */
+-	{OV7251_8BIT, 0x3633, 0x23},
+-	{OV7251_8BIT, 0x3634, 0x54},
+-	{OV7251_8BIT, 0x3f01, 0x0c},
+-	{OV7251_8BIT, 0x5001, 0xc1},
+-	{OV7251_8BIT, 0x3614, 0xf0},
+-	{OV7251_8BIT, 0x3630, 0x2d},
+-	{OV7251_8BIT, 0x370b, 0x62},
+-	{OV7251_8BIT, 0x3706, 0x61},
+-	{OV7251_8BIT, 0x4000, 0x02},
+-	{OV7251_8BIT, 0x4002, 0xc5},
+-	{OV7251_8BIT, 0x4005, 0x08},
+-	{OV7251_8BIT, 0x404f, 0x84},
+-	{OV7251_8BIT, 0x4051, 0x00},
+-	{OV7251_8BIT, 0x5000, 0xcf}, /* manual 3a */
+-	{OV7251_8BIT, 0x301d, 0xf0}, /* enable group hold */
+-	{OV7251_8BIT, 0x3a18, 0x00},
+-	{OV7251_8BIT, 0x3a19, 0x80},
+-	{OV7251_8BIT, 0x3503, 0x07},
+-	{OV7251_8BIT, 0x4521, 0x00},
+-	{OV7251_8BIT, 0x5183, 0xb0},
+-	{OV7251_8BIT, 0x5184, 0xb0},
+-	{OV7251_8BIT, 0x5185, 0xb0},
+-	{OV7251_8BIT, 0x370c, 0x0c},
+-	{OV7251_8BIT, 0x3035, 0x00},
+-	{OV7251_8BIT, 0x3036, 0x26}, /* {0x3036, 0x2c}, //422.4 MHz */
+-	{OV7251_8BIT, 0x3037, 0xa1},
+-	{OV7251_8BIT, 0x303e, 0x19},
+-	{OV7251_8BIT, 0x3038, 0x06},
+-	{OV7251_8BIT, 0x3018, 0x04},
+-	{OV7251_8BIT, 0x3000, 0x00}, /* added for power optimization */
+-	{OV7251_8BIT, 0x3001, 0x00},
+-	{OV7251_8BIT, 0x3002, 0x00},
+-	{OV7251_8BIT, 0x3a0f, 0x40},
+-	{OV7251_8BIT, 0x3a10, 0x38},
+-	{OV7251_8BIT, 0x3a1b, 0x48},
+-	{OV7251_8BIT, 0x3a1e, 0x30},
+-	{OV7251_8BIT, 0x3a11, 0x90},
+-	{OV7251_8BIT, 0x3a1f, 0x10},
+-	{OV7251_8BIT, 0x3503, 0x07}, /* manual 3a */
+-	{OV7251_8BIT, 0x3500, 0x00},
+-	{OV7251_8BIT, 0x3501, 0x3F},
+-	{OV7251_8BIT, 0x3502, 0x00},
+-	{OV7251_8BIT, 0x3508, 0x00},
+-	{OV7251_8BIT, 0x3509, 0x00},
+ 	{OV7251_TOK_TERM, 0, 0},
+ };
+ 
+@@ -1183,7 +435,6 @@ struct ov7251_resolution ov7251_res_preview[] = {
+ 		.width = 640,
+ 		.height = 480,
+ 		.fps = 30,
+-		.pix_clk_freq = 73,
+ 		.used = 0,
+ /*		.pixels_per_line = 2048,
+ //		.lines_per_frame = 1184, */
+@@ -1205,7 +456,6 @@ struct ov7251_resolution ov7251_res_still[] = {
+ 		.width = 640,
+ 		.height = 480,
+ 		.fps = 30,
+-		.pix_clk_freq = 73,
+ 		.used = 0,
+ /*		.pixels_per_line = 2048,
+ //		.lines_per_frame = 1184, */
+@@ -1229,7 +479,6 @@ struct ov7251_resolution ov7251_res_video[] = {
+ 		.width = 640,
+ 		.height = 480,
+ 		.fps = 30,
+-		.pix_clk_freq = 73,
+ 		.used = 0,
+ /*		.pixels_per_line = 2048,
+ //		.lines_per_frame = 1184, */
+-- 
+2.14.1
+

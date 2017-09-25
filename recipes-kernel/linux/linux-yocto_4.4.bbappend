@@ -54,6 +54,12 @@ SRC_URI += " \
 	file://0032-BACKPORT-media-uvcvideo-Add-bayer-16-bit-format-patterns.patch \
 	file://0033-BACKPORT-media-uvcvideo-Add-support-for-Intel-SR300-depth-cam.patch \
 	file://0044-Add-non-upstream-realsense-camera-formats.patch \
+	file://0045-drivers-media-ov7251-Remove-deadcode-and-fix-code-st.patch \
+	file://0046-drivers-media-ov7251-Add-name-of-main-registers.patch \
+	file://0047-drivers-media-ov7251-Increase-FPS-to-75hz.patch \
+	file://0048-drivers-media-ov7251-Remove-printk-from-__ov7251_set.patch \
+	file://0049-drivers-media-ov7251-Enable-set-exposure-and-gain.patch \
+	file://0050-drivers-media-atomisp-Allow-user-set-exposure-and-ga.patch \
 	"
 
 do_install_append() {
