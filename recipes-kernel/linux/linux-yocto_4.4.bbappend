@@ -60,6 +60,7 @@ SRC_URI += " \
 	file://0049-drivers-media-ov7251-Enable-set-exposure-and-gain.patch \
 	file://0050-drivers-media-atomisp-Allow-user-set-exposure-and-ga.patch \
 	file://0051-Add-ACPI-support-for-MCP251x-CAN-controller.patch \
+	file://0052-workaround-for-wrong-ACPI-configuration-passed-for-mcp251x.patch \
 	"
 
 do_install_append() {
