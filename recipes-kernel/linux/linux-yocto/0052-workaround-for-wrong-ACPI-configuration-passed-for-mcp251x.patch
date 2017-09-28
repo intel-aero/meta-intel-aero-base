@@ -1,0 +1,55 @@
+From d1e3c0150b802daf3078036bb8c8d540716036d4 Mon Sep 17 00:00:00 2001
+From: Sugnan Prabhu S <sugnan.prabhu.s@intel.com>
+Date: Tue, 26 Sep 2017 12:37:14 +0530
+Subject: [PATCH 2/2] workaround for wrong ACPI configuration passed for
+ mcp251x
+
+This is a temporary patch to override the wrong configuration
+values passed for the mcp251x CAN controller.
+- spi mode supported by mcp251x as per datasheet is either 0,0 or 1,1
+  but the mode passed in the ACPI table is 0,1
+- IRQ number passed in ACPI table is 231, which is not working.
+  Correct irq number is found by trying a range of supported irq numbers
+  for which cpu receives an interrupt from mcp251x on receiving CAN data
+  from another CAN controller.
+- Aero provides 25MHz clock for the mcp251x oscillator input.
+
+Signed-off-by: Sugnan Prabhu S <sugnan.prabhu.s@intel.com>
+---
+ drivers/net/can/spi/mcp251x.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/net/can/spi/mcp251x.c b/drivers/net/can/spi/mcp251x.c
+index 442386cf..815419a 100644
+--- a/drivers/net/can/spi/mcp251x.c
++++ b/drivers/net/can/spi/mcp251x.c
+@@ -220,6 +220,9 @@
+ 
+ #define DEVICE_NAME "mcp251x"
+ 
++#define DEFAULT_OSC_CLK_FREQ	(25 * 1000 * 1000)
++#define CPU_IN_MCP2515_IRQ		157
++
+ static int mcp251x_enable_dma; /* Enable SPI DMA. Default: 0 (Off) */
+ module_param(mcp251x_enable_dma, int, S_IRUGO);
+ MODULE_PARM_DESC(mcp251x_enable_dma, "Enable SPI DMA. Default: 0 (Off)");
+@@ -1048,12 +1051,16 @@ static int mcp251x_can_probe(struct spi_device *spi)
+ 		spi->irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(&spi->dev), 0);
+ 		if (spi->irq < 0)
+ 			return -EINVAL;
++		spi->mode = SPI_MODE_0;
++		spi->irq = CPU_IN_MCP2515_IRQ;
+ 	}
+ 
+ 	clk = devm_clk_get(&spi->dev, NULL);
+ 	if (IS_ERR(clk)) {
+ 		if (pdata)
+ 			freq = pdata->oscillator_frequency;
++		else if (has_acpi_companion(&spi->dev))
++			freq = DEFAULT_OSC_CLK_FREQ;
+ 		else
+ 			return PTR_ERR(clk);
+ 	} else {
+-- 
+2.7.4
+
