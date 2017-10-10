@@ -7,7 +7,6 @@ inherit module
 SRC_URI = "file://Makefile \
 		   file://spi_imu.c \
 		   file://spi_fpga.c \
-		   file://spi_can.c \
 		   file://COPYING \
 		   "
 
