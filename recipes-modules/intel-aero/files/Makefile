@@ -1,6 +1,5 @@
 obj-m	+= spi_imu.o
 obj-m	+= spi_fpga.o
-obj-m	+= spi_can.o
 
 SRC := $(shell pwd)
 
