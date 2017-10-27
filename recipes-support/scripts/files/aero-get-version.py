@@ -19,7 +19,18 @@ def main():
     OS_version()
     AirMap_version()
     FPGA_version()
+    AeroFC_version()
     print "\n"
+
+def AeroFC_version():
+    try:
+        status, output = commands.getstatusoutput("aerofc-get-version.py")
+        if status != 0:
+            print "AeroFC firmware version = unknown"
+        else:
+            print output
+    except:
+        print "AeroFC firmware version = unknown"
 
 def FPGA_version():
     print "FPGA_VERSION =",
