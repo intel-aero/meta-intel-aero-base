@@ -54,10 +54,15 @@ if [ -n "$(fuser /dev/ttyS1)" ]; then
 fi
 
 echo -e "Updating firmware on AeroFC"
+
+aerofc-force-bootloader-pin.py 1
+
 /usr/sbin/px_uploader.py \
     --port /dev/ttyS1 \
     --baud-flightstack 460800,921600,1500000,115200 \
     "$1"
+
+aerofc-force-bootloader-pin.py 0
 
 # run router again if it was previously running
 if [ $router_running ]; then
