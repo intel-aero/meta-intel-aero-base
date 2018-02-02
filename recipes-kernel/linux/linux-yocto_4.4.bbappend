@@ -1,8 +1,8 @@
 # Intel Aero Machine kernel support
 KBRANCH_intel-aero ?= "standard/intel/base"
-SRCREV_machine_intel-aero ?= "fc192e7e520e39d26cdbb8c46288e71b15dae325"
+SRCREV_machine_intel-aero ?= "ad0fe444fa68ae2cce203abceb71f6fb87bc6c7f"
 COMPATIBLE_MACHINE_intel-aero = "intel-aero"
-LINUX_VERSION_intel-aero = "4.4.76"
+LINUX_VERSION_intel-aero = "4.4.113"
 
 KERNEL_EXTRA_FEATURES = ""
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
